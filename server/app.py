@@ -1,6 +1,13 @@
 
 #!/usr/bin/env python3
 
+
+#1. import bcrypt
+#2. write models
+# - include @hybrid_property, password_hash.setter, authenticate
+#3.write routes 
+# - login, signup, authenticate 
+#4.review React
 from flask import request, session
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
@@ -15,9 +22,13 @@ def check_if_logged_in():
         'login',
         'check_session'
     ]
+    #cookie session and server session, stores user id
+    #Flask session is persisted as a cookie in the user's browser by default. 
+    print(session)
 
     if (request.endpoint) not in open_access_list and (not session.get('user_id')):
         return {'error': '401 Unauthorized'}, 401
+
 
 
 class Signup(Resource):
@@ -27,6 +38,7 @@ class Signup(Resource):
         request_json = request.get_json()
 
         username = request_json.get('username')
+        # see later
         password = request_json.get('password')
         image_url = request_json.get('image_url')
         bio = request_json.get('bio')
@@ -37,15 +49,17 @@ class Signup(Resource):
             bio=bio
         )
 
-        # the setter will encrypt this
+        # the setter contains the encryption code 
         user.password_hash = password
 
         try:
 
             db.session.add(user)
             db.session.commit()
-
+            #hash and save user_id on client-side and on server
+            #Flask session is persisted as a cookie in the user's browser by default. 
             session['user_id'] = user.id
+
 
             return user.to_dict(), 201
 
@@ -56,7 +70,8 @@ class Signup(Resource):
 class CheckSession(Resource):
 
     def get(self):
-        
+        # server sets cookie son client-side
+        # and saves the user_id on server side but hashed
         user_id = session['user_id']
         if user_id:
             user = User.query.filter(User.id == user_id).first()
@@ -66,7 +81,7 @@ class CheckSession(Resource):
 
 
 class Login(Resource):
-    
+    #using post only because we need to pass along data
     def post(self):
 
         request_json = request.get_json()
@@ -77,8 +92,10 @@ class Login(Resource):
         user = User.query.filter(User.username == username).first()
 
         if user:
+            # see models, method authenticate contains code to check_password_hash
             if user.authenticate(password):
 
+                # sets flask server with user_id
                 session['user_id'] = user.id
                 return user.to_dict(), 200
 

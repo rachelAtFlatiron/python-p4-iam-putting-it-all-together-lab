@@ -16,10 +16,16 @@ class User(db.Model, SerializerMixin):
 
     recipes = db.relationship('Recipe', backref='user')
 
+    # "decorator which allows definition of a Python descriptor with both instance-level and class-level behavior."
+    # this is a special property decorator for sqlalchemy
+    # it leaves all of the sqlalchemy characteristics of the column in place
+    # only shows this error when we try and access it using Flask
+    # we can view it in sqlite3/app.db 
     @hybrid_property
     def password_hash(self):
+        #return self._password_hash 
         raise AttributeError('Password hashes may not be viewed.')
-
+    
     @password_hash.setter
     def password_hash(self, password):
         password_hash = bcrypt.generate_password_hash(
