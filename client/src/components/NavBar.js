@@ -16,8 +16,10 @@ function NavBar({ user, setUser }) {
     <Wrapper>
       <Logo>
         <Link to="/">Reciplease</Link>
+        
       </Logo>
       <Nav>
+        <h1>Hi! {user.username}</h1>
         <Button as={Link} to="/new">
           New Recipe
         </Button>
